@@ -7,33 +7,35 @@
 </head>
 <body>
 <script>
-    let customerPaymentData = {};
+    let customerPaymentData = "Heise de";
     let aesKey = '0000000000000000';
-    let encryptedCustomerPaymentData = encryptCustomerPaymentData();
 
+    const salt = CryptoJS.enc.Utf8.parse("12345678");
+    // const password =  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const password = "test";
+    const keyBits = CryptoJS.PBKDF2(password, salt, {
+        hasher: CryptoJS.algo.SHA1,
+        keySize: 16,
+        iterations: 2048
+    });
 
-    function encryptCustomerPaymentData() {
-        let aesOptions = {
-            iv: '0000000000000000',
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7
-        };
+    const iv = CryptoJS.enc.Base64.parse("nwy2VHctPnXOd/rahPFiWg==");
+    let aesOptions = {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    };
+    let encryptedCustomerPaymentData = encryptCustomerPaymentData(customerPaymentData, aesOptions);
+
+    function encryptCustomerPaymentData(data, options) {
         // Encrypt
-        return CryptoJS.AES.encrypt(JSON.stringify(customerPaymentData), aesKey, aesOptions).toString();
+        return CryptoJS.AES.encrypt(data, keyBits, options).toString();
     }
 
-    function decryptCustomerPaymentData() {
-        let aesOptions = {
-            iv: '0000000000000000',
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7
-        };
-        let ciphertext = encryptCustomerPaymentData();
+    function decryptCustomerPaymentData(encryptedData, options) {
         // Decrypt
-        const bytes = CryptoJS.AES.decrypt(ciphertext, aesKey, aesOptions);
-        let result = bytes.toString(CryptoJS.enc.Utf8);
-        console.log(result);
-        return result;
+        const bytes = CryptoJS.AES.decrypt(encryptedData, keyBits, options);
+        return bytes.toString(CryptoJS.enc.Utf8);
     }
 
     const payload = {
@@ -42,11 +44,26 @@
         key: aesKey,
     };
 
-    function pay() {
-        console.log("Payload: ", payload);
+    function encrypt() {
+        let encryptedText = encryptCustomerPaymentData(customerPaymentData, aesOptions);
+        console.log(encryptedText);
+        console.log(CryptoJS.enc.Hex.stringify(CryptoJS.enc.Hex.parse(encryptedText)));
+        console.log(CryptoJS.enc.Hex.stringify(CryptoJS.enc.Hex.parse(keyBits)));
+        console.log(CryptoJS.enc.Hex.stringify(keyBits));
+        console.log(CryptoJS.enc.Hex.stringify(keyBits).toString());
+    }
+
+    function decrypt() {
+        let decryptedText = decryptCustomerPaymentData(encryptedCustomerPaymentData, aesOptions);
+        console.log(decryptedText);
+        console.log(CryptoJS.enc.Hex.parse(decryptedText));
+        console.log(CryptoJS.enc.Hex.stringify(decryptedText));
+        console.log(CryptoJS.enc.Hex.stringify(CryptoJS.enc.Hex.parse(decryptedText)));
+        console.log(btoa(decryptedText));
+        console.log(CryptoJS.enc.Hex.stringify(CryptoJS.enc.Hex.parse(btoa(decryptedText))));
     }
 </script>
-<button onclick="pay()">Pay</button>
-<button onclick="decryptCustomerPaymentData()">Decrypt</button>
+<button onclick="encrypt()">Encrypt</button>
+<button onclick="decrypt()">Decrypt</button>
 </body>
 </html>
