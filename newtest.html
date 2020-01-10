@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Encrypted checkout sample</title>
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
-            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="js/songbird_v1.js"></script>
+    <script type="text/javascript" src="js/enc_checkout.js"></script>
     <script type="text/javascript" src="js/crypto-js/crypto-js.js"></script>
 </head>
 <body>
@@ -26,14 +27,13 @@
             iv: iv,
             padding: CryptoJS.pad.Pkcs7,
             mode: CryptoJS.mode.CBC
-
         });
 
         // Return encrypted result together with key and iv for use in decryption
         return {
             key: key.toString(), // 256 bit key in hex (64 chars)
             iv: iv.toString(), // 128 bit IV in hex (32 chars)
-            encrypted: encrypted.toString()
+            encrypted: encrypted.toString() // Base64 encoded string of the encrypted data
         };
     }
 
@@ -64,7 +64,25 @@
         console.log(decrypted.toString(CryptoJS.enc.Utf8));
         $('#decrypted').text("Decrypted: " + decrypted.toString(CryptoJS.enc.Utf8));
     }
+
+    function pay() {
+        const payload = $('#payload').val();
+        const password = $('#password').val();
+        let result = encrypt(payload, password);
+        makeCardPayment(result, successCallback, failureCallback)
+    }
+
+    let successCallback = function (result) {
+        alert("Result:" + result);
+    };
+    let failureCallback = function (error) {
+        console.log(error);
+        alert("Error:" + error);
+    };
 </script>
+<div>
+    <button onclick="pay()">Pay</button>
+</div>
 <div style="display: flex; max-width: 100%">
     <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
         <button onclick="doEncrypt()">Encrypt</button>
