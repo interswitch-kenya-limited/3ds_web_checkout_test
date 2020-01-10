@@ -9,24 +9,18 @@
 </head>
 <body>
 <script>
-    // Code goes here
-    const keySize = 256;
-    const ivSize = 128;
-    const iterations = 100;
-
-    const message = "Hello World";
-    const password = "Secret Password";
-
-
     function encrypt(msg, pass) {
-        const salt = CryptoJS.lib.WordArray.random(ivSize / 8);
+        //Create random salt to strengthen key
+        const salt = CryptoJS.lib.WordArray.random(128 / 8);
 
+        //Generate stronger 256 bit key based on given password and random salt
         const key = CryptoJS.PBKDF2(pass, salt, {
-            keySize: keySize / 32,
-            iterations: iterations
+            keySize: 256 / 32,
+            iterations: 1024
         });
 
-        const iv = CryptoJS.lib.WordArray.random(ivSize / 8);
+        //Create random 128 bit iv for 16 byte aes block
+        const iv = CryptoJS.lib.WordArray.random(128 / 8);
 
         const encrypted = CryptoJS.AES.encrypt(msg, key, {
             iv: iv,
@@ -35,44 +29,82 @@
 
         });
 
-        // salt, iv will be hex 32 in length
-        // append them to the ciphertext for use  in decryption
-        const transitmessage = salt.toString() + iv.toString() + encrypted.toString();
-        return transitmessage;
+        // Return encrypted result together with key and iv for use in decryption
+        return {
+            key: key.toString(), // 256 bit key in hex (64 chars)
+            iv: iv.toString(), // 128 bit IV in hex (32 chars)
+            encrypted: encrypted.toString()
+        };
     }
 
-    function decrypt(transitmessage, pass) {
-        const salt = CryptoJS.enc.Hex.parse(transitmessage.substr(0, 32));
-        const iv = CryptoJS.enc.Hex.parse(transitmessage.substr(32, 32));
-        const encrypted = transitmessage.substring(64);
-
-        const key = CryptoJS.PBKDF2(pass, salt, {
-            keySize: keySize / 32,
-            iterations: 100
-        });
-
-        const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-            iv: iv,
+    function decrypt(encrypted, key, iv) {
+        console.log(encrypted, key, iv);
+        return CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Hex.parse(key), {
+            iv: CryptoJS.enc.Hex.parse(iv),
             padding: CryptoJS.pad.Pkcs7,
             mode: CryptoJS.mode.CBC
-
         });
-        return decrypted;
     }
 
-    let encrypted = encrypt(message, password);
-    let decrypted = decrypt(encrypted, password);
-    console.log(encrypted);
-    console.log(decrypted);
-    console.log(decrypted.toString(CryptoJS.enc.Utf8));
-    $('#encrypted').text("Encrypted: " + encrypted);
-    $('#decrypted').text("Decrypted: " + decrypted.toString(CryptoJS.enc.Utf8));
+    function doEncrypt() {
+        const payload = $('#payload').val();
+        const password = $('#password').val();
+        let result = encrypt(payload, password);
+        console.log(result);
+        $('#encrypted').text(result.encrypted);
+        $('#key').text(result.key);
+        $('#iv').text(result.iv);
+    }
+
+    function doDecrypt() {
+        let encrypted = $('#encrypted').text();
+        const key = $('#key').text();
+        const iv = $('#iv').text();
+        let decrypted = decrypt(encrypted, key, iv);
+        console.log(decrypted.toString(CryptoJS.enc.Utf8));
+        $('#decrypted').text("Decrypted: " + decrypted.toString(CryptoJS.enc.Utf8));
+    }
 </script>
-<div>
-    <p id="encrypted"></p>
-    <p id="decrypted"></p>
+<div style="display: flex; max-width: 100%">
+    <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
+        <button onclick="doEncrypt()">Encrypt</button>
+        <form>
+        <textarea id="payload" placeholder="payload">{
+  "amount": "100",
+  "channel": "WEB",
+  "currencyCode": "KES",
+  "customerInfor": "1002|kelvin|mwangi| kelvin.mwangi@interswitchgroup.com |0714171282|NBI|KE|00200|wstlnds|NBI",
+  "dateOfPayment": "2016-09-05T10:20:26",
+  "domain": "ISWKE",
+  "fee": "0",
+  "iconUrl": "https://photos.lci.fr/images/613/344/oeuf-instagram-record-31922d-0@1x.jpeg",
+  "providerIconUrl": "https://photos.lci.fr/images/613/344/oeuf-instagram-record-31922d-0@1x.jpeg",
+  "reqId": "",
+  "field1": {},
+  "merchantCode": "ISWKEN0001",
+  "narration": "Payment",
+  "orderId": "DeChOid_202001100749_jtd",
+  "preauth": "0",
+  "redirectUrl": "https://testmerchant.interswitch-ke.com",
+  "terminalId": "3TLP0001",
+  "transactionReference": "DeChRef_202001100749_mVC",
+  "cardTokensJson": "[{\"panLast4Digits\":\"1895\",\"panFirst6Digits\":\"506183\",\"token\":\"C48FA7D7F466914A3E4440DE458AABC1914B9500CC7780BEB4\",\"expiry\":\"05/20\"},{\"panLast4Digits\":\"1111\",\"panFirst6Digits\":\"411111\",\"token\":\"DBA747BC30109711E8A1A2FDAFCD27A851B37DDA24F8BE2724\",\"expiry\":\"04/20\"}]",
+  "merchantName": "Virtual Pay International"
+  "cardNumber": "4111111111111111"
+  "cardExpiry": "02/22"
+  "cardCvc": "333"
+}</textarea>
+            <label for="password">Password</label><input type="text" id="password" placeholder="password"
+                                                         value="Secret Password">
+        </form>
+        <p id="encrypted" style="overflow: scroll"></p>
+    </div>
+    <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
+        <button onclick="doDecrypt()">Decrypt</button>
+        <p id="key"></p>
+        <p id="iv"></p>
+        <p id="decrypted"></p>
+    </div>
 </div>
-<button onclick="encrypt()">Encrypt</button>
-<button onclick="decrypt()">Decrypt</button>
 </body>
 </html>
