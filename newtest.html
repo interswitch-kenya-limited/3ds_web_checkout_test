@@ -73,7 +73,8 @@
     }
 
     let successCallback = function (result) {
-        alert("Result:" + result);
+        console.log(result);
+        alert("Result:" + result.value);
     };
     let failureCallback = function (error) {
         console.log(error);
@@ -87,33 +88,10 @@
     <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
         <button onclick="doEncrypt()">Encrypt</button>
         <form>
-        <textarea id="payload" placeholder="payload">{
-  "amount": "100",
-  "channel": "WEB",
-  "currencyCode": "KES",
-  "customerInfor": "1002|kelvin|mwangi| kelvin.mwangi@interswitchgroup.com |0714171282|NBI|KE|00200|wstlnds|NBI",
-  "dateOfPayment": "2016-09-05T10:20:26",
-  "domain": "ISWKE",
-  "fee": "0",
-  "iconUrl": "https://photos.lci.fr/images/613/344/oeuf-instagram-record-31922d-0@1x.jpeg",
-  "providerIconUrl": "https://photos.lci.fr/images/613/344/oeuf-instagram-record-31922d-0@1x.jpeg",
-  "reqId": "",
-  "field1": {},
-  "merchantCode": "ISWKEN0001",
-  "narration": "Payment",
-  "orderId": "DeChOid_202001100749_jtd",
-  "preauth": "0",
-  "redirectUrl": "https://testmerchant.interswitch-ke.com",
-  "terminalId": "3TLP0001",
-  "transactionReference": "DeChRef_202001100749_mVC",
-  "cardTokensJson": "[{\"panLast4Digits\":\"1895\",\"panFirst6Digits\":\"506183\",\"token\":\"C48FA7D7F466914A3E4440DE458AABC1914B9500CC7780BEB4\",\"expiry\":\"05/20\"},{\"panLast4Digits\":\"1111\",\"panFirst6Digits\":\"411111\",\"token\":\"DBA747BC30109711E8A1A2FDAFCD27A851B37DDA24F8BE2724\",\"expiry\":\"04/20\"}]",
-  "merchantName": "Virtual Pay International"
-  "cardNumber": "4111111111111111"
-  "cardExpiry": "02/22"
-  "cardCvc": "333"
-}</textarea>
-            <label for="password">Password</label><input type="text" id="password" placeholder="password"
-                                                         value="Secret Password">
+            <label for="payload">Payload</label>
+            <textarea id="payload" placeholder="payload">{"secureData":"33cf690ddc6d4066f2c54b1ad0b565d38299117c201720218146a5af43ce5e4f3c7edabfae48745e8a5c603c7496b118b87f81b7017c9f07fb7b105ab214968e45391c6a6d6307ad26db2a8edc0add39d5895a09e3a7c5b0a98563fd3ee9566a9fe7576ffedb07f4bbbea156c9f9565138e36ff2293083b6c9f0e6506d2cc83a901355fbc29e007a77c33fa2d7d59253a7160cfa91327cea1098efb5d6dc443f027df4d5dba464a8e1c9cdec904766a4235fc8b80e582cc27564399aa711595920a01d7f418607f8285ac4f758cfa6b323c116ad192188f69ec5b522d743c8d986e42923b6947eae5ffdcf7231b856f89b1f31bd932f6ebfb81ac230d37c4e01","pinBlock":"b581e06d1d0567cd","authData":"KV1Dt2jMiGDws+fp/emlGTbwUFcX+Rw9YxNGMcOGSJT6t0r9J5nYpwR8CSq5oMuRJJXwnxD9exQGIAXZLG147w6R/mWk+oqzxrPPbiri88We3hb4yXA62xhSWgqk7iwVo2vCcSJSIr/MBsIvu0fsmdQojz8eKUtPA+tOjIdBTSiS6dYcJYmWI8/cdZ+HcXCMUBa1u5y5zxcqSymYXj+PomfeWs1/v9uuLW/Jnu4mG3qItGkiAbbfKVA8Vl6LePTY6ocarltJ0SiXm9/ac8uMHrJYuHFyRPRsKgrzxwIAi7Vas/Xe+VgbOHe/JMGsMeiR0m8/rkHIqLtnoBFt0e111A==","paymentId":200,"amount":"100","transactionRef":"DeChRef_202001131440_srj","terminalType":"WEB","terminalId":"3TLP0001","paymentItem":"CRD","provider":"VRI","merchantId":"ISWKEN0001","customerInfor":"1002|kelvin|mwangi| kelvin.mwangi@interswitchgroup.com |0714171282|NBI|KE|00200|wstlnds|NBI||testmerchant.interswitch-ke.com |Firefox","orderId":"DeChOid_202001131440_cCH","currencyCode":"KES","currency":"KES","domain":"ISWKE","narration":"Payment","fee":"0","preauth":"0","paca":"1"}</textarea>
+            <label for="password">Password</label>
+            <input type="text" id="password" placeholder="password" value="Secret Password">
         </form>
         <p id="encrypted" style="overflow: scroll"></p>
     </div>

@@ -29,24 +29,35 @@ Cardinal.on('payments.setupComplete', paymentsCompleted);
 Cardinal.on("payments.validated", paymentsValidated);
 
 function makeCardPayment(payload, successCallback, errorCallback) {
-    $.post(baseUrl + "/merchant/card/encryptedinitialize", payload, function (response) {
-        console.log(response);
-    }).fail(t => errorCallback(t)).then(r => {
-        console.log(r)
-    });
+    fetch(baseUrl + "/merchant/card/encryptedinitialize", {
+        body: JSON.stringify(payload),
+        credentials: 'same-origin',
+        mode: 'cors',
+        headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
+        method: 'POST'
+    })
+        .then(response => {
+            return response.json();
+        }).then(response => {
+        cardInitialize(response, errorCallback);
+        // successCallback(response);
+    })
+        .catch(error => {
+            errorCallback(error);
+        });
 }
 
 function cardInitialize(payloadParam, callbackParam) {
     const ip = getIp();
     payload = payloadParam;
     callback = callbackParam;
-    payload = JSON.parse(payload);
+    // payload = JSON.parse(payload);
     if (payload.customerInfor) {
-        if (payload.customerInfor.split('|').length === 10) {
-            payload.customerInfor = payload.customerInfor + '|' + ip + '|' + window.location.hostname + ' |' + getBrowserInfor();
-        } else {
-            payload.customerInfor = "| | | | | | | | | | |" + ip + '|' + window.location.hostname + ' |' + getBrowserInfor();
-        }
+        let customerInforParts = payload.customerInfor.split('|');
+        customerInforParts[10] = ip;
+        customerInforParts[11] = window.location.hostname;
+        customerInforParts[12] = getBrowserInfor();
+        payload.customerInfor = customerInforParts.join('|');
     } else {
         payload.customerInfor = "| | | | | | | | | | |" + ip + '|' + window.location.hostname + ' |' + getBrowserInfor();
     }
