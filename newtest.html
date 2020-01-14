@@ -47,9 +47,9 @@
     }
 
     function doEncrypt() {
-        const payload = $('#payload').val();
+        const payload = buildPayload();
         const password = $('#password').val();
-        let result = encrypt(payload, password);
+        let result = encrypt(JSON.stringify(payload), password);
         console.log(result);
         $('#encrypted').text(result.encrypted);
         $('#key').text(result.key);
@@ -65,18 +65,34 @@
         $('#decrypted').text("Decrypted: " + decrypted.toString(CryptoJS.enc.Utf8));
     }
 
-    function pay() {
-        const payload = $('#payload').val();
-        const password = $('#password').val();
-        let result = encrypt(payload, password);
-        makeCardPayment(result, successCallback, failureCallback)
+    function buildPayload() {
+        return {
+            amount: $('#amount').val(),
+            currency: $('#currency').val(),
+            customerInfor: "1002|kelvin|mwangi| kelvin.mwangi@interswitchgroup.com |0714171282|NBI|KE|00200|wstlnds|NBI||testmerchant.interswitch-ke.com |Firefox",
+            cvv2: $('#cvv').val(),
+            domain: $('#domain').val(),
+            expiryDate: $('#expiry_date').val(),
+            merchantId: $('#merchant_id').val(),
+            narration: $('#narration').val(),
+            orderId: $('#order_id').val(),
+            pan: $('#pan').val(),
+            transactionRef: $('#transaction_ref').val()
+        }
     }
 
-    let successCallback = function (result) {
+    function pay() {
+        const payload = buildPayload();
+        const password = $('#password').val();
+        let result = encrypt(JSON.stringify(payload), password);
+        makeCardPayment(result, onSuccess, onFailure)
+    }
+
+    let onSuccess = function (result) {
         console.log(result);
         alert("Result:" + result.value);
     };
-    let failureCallback = function (error) {
+    let onFailure = function (error) {
         console.log(error);
         alert("Error:" + error);
     };
@@ -573,7 +589,7 @@
             <div>
                 <input type="text" id="password" placeholder="password">
             </div>
-            <button type="submit" onclick="pay()">Pay</button>
+            <button onclick="pay()">Pay</button>
         </form>
         <p id="encrypted" style="overflow: scroll"></p>
     </div>

@@ -4,7 +4,8 @@
 const baseUrl = "http://localhost:7784";
 let eresp = "";
 let payload = "";
-let callback;
+let successCallback;
+let errorCallback;
 
 function getIp() {
     let ip = "";
@@ -28,7 +29,9 @@ Cardinal.configure({
 Cardinal.on('payments.setupComplete', paymentsCompleted);
 Cardinal.on("payments.validated", paymentsValidated);
 
-function makeCardPayment(payload, successCallback, errorCallback) {
+function makeCardPayment(payload, onSuccess, onFailure) {
+    successCallback = onSuccess;
+    errorCallback = onFailure;
     fetch(baseUrl + "/merchant/card/encryptedIPGCheckout", {
         body: JSON.stringify(payload),
         credentials: 'same-origin',
@@ -39,7 +42,7 @@ function makeCardPayment(payload, successCallback, errorCallback) {
         .then(response => {
             return response.json();
         }).then(response => {
-        cardInitialize(response, errorCallback);
+        cardInitialize(response, successCallback, errorCallback);
         // successCallback(response);
     })
         .catch(error => {
@@ -47,10 +50,9 @@ function makeCardPayment(payload, successCallback, errorCallback) {
         });
 }
 
-function cardInitialize(payloadParam, callbackParam) {
+function cardInitialize(payloadParam, successCallback, errorCallback) {
     const ip = getIp();
     payload = payloadParam;
-    callback = callbackParam;
     // payload = JSON.parse(payload);
     if (payload.customerInfor) {
         let customerInforParts = payload.customerInfor.split('|');
@@ -62,33 +64,24 @@ function cardInitialize(payloadParam, callbackParam) {
         payload.customerInfor = "| | | | | | | | | | |" + ip + '|' + window.location.hostname + ' |' + getBrowserInfor();
     }
     payload = JSON.stringify(payload);
-    //    console.count("cardInitialize(payload): " + payload);
     $.get(baseUrl + "/merchant/card/initialize", {requestStr: payload}, function (response) {
         if (response.jwt) {
-
             //validate account
             Cardinal.setup("init", {
                 jwt: response.jwt
             });
-
-//            console.count("/merchant/card/initialize response:", JSON.stringify(response));
         } else {
             console.count("card not enrolled");
-            callback(response, null, undefined);
+            errorCallback(response);
         }
-    }).done(function () {
-        // callback("second success", null, undefined);
     }).fail(function () {
-        callback("error", null, undefined);
-    }).always(function () {
-        // callback("finished", null, undefined);
+        errorCallback("error");
     });
 }
 
-function tokenInitialize(payloadParam, callbackParam) {
+function tokenInitialize(payloadParam, successCallback, errorCallback) {
     const ip = getIp();
     payload = payloadParam;
-    callback = callbackParam;
     payload = JSON.parse(payload);
     if (payload.customerInfor) {
         if (payload.customerInfor.split('|').length === 10) {
@@ -103,37 +96,26 @@ function tokenInitialize(payloadParam, callbackParam) {
     //    console.count("cardInitialize(payload): " + payload);
     $.get(baseUrl + "/merchant/token/initialize", {requestStr: payload}, function (response) {
         if (response.jwt) {
-
             //validate account
             Cardinal.setup("init", {
                 jwt: response.jwt
             });
             payload = JSON.stringify(response);
-//            console.count("Response and new payload" + payload);
         } else {
             console.count("Token card not enrolled");
-            callback(response, null, undefined);
+            errorCallback(response);
         }
-    }).done(function () {
-        // callback("second success", null, undefined);
     }).fail(function () {
-        callback("error", null, undefined);
-    }).always(function () {
-        // callback("finished", null, undefined);
+        errorCallback("error", null, undefined);
     });
 }
 
 function paymentsCompleted(setupCompleteData) {
-//    console.count("payments.setupComplete", setupCompleteData.sessionId);
     Cardinal.trigger("bin.process", '1234567894561237');
     checkEnrollAction(payload, setupCompleteData.sessionId);
 }
 
 function paymentsValidated(data, jwt) {
-//    console.count('payments.validated', jwt);
-//    console.count('eresp: ' + eresp);
-//    console.count(JSON.stringify(data));
-//    console.log("Data action code:", data.ActionCode);
     validateAction(payload, eresp, JSON.stringify(data), JSON.stringify(jwt));
     switch (data.ActionCode) {
         case "SUCCESS":
@@ -148,12 +130,12 @@ function paymentsValidated(data, jwt) {
         case "FAILURE":
 //            console.count("FAILURE");
             // Handle failed transaction attempt
-            callback(data);
+            errorCallback(data);
             break;
         case "ERROR":
 //            console.count("ERROR");
             // Handle service level error
-            callback(data);
+            errorCallback(data);
             break;
     }
 }
@@ -211,38 +193,28 @@ function validateAction(payload, eresp, data, jwt) {
 function authorizeAction(payload, eresp) {
     $.get(baseUrl + "/merchant/card/authorize1", {eresp: eresp, requestStr: payload}, function (response) {
         if (response.transactionRef) {
-//            console.count(JSON.stringify(response));
-//            console.count("Successfully authorized" + response);
-            callback(null, eresp, null);
+            successCallback(eresp);
             notifyAction("Authorize", "0", JSON.stringify(response), payload);
         } else {
 //            console.count(JSON.stringify(response));
 //            console.count("Authorization failed");
             notifyAction("Authorize", "1", JSON.stringify(response), payload);
-            callback(response, null, undefined);
+            errorCallback(response);
         }
     });
 }
 
 function notifyAction(transactionType, respStatus, resp, payload) {
-//    console.log("Notifying outcome for " + transactionType + ", result status: " + respStatus + " response: " + resp);
-    if (respStatus === "0") {
-//        console.count("Notify succeeded");
-        callback(null, resp, null);
-    } else {
-        callback(resp);
-    }
     $.get(baseUrl + "/merchant/card/notify", {
         transactionType: transactionType,
         respStatus: respStatus,
         responseStr: resp,
         requestStr: payload
     }, function (response) {
-//        console.count("Notify response", JSON.stringify(response));
-        if (response.responseCode) {
-//            console.count("Notify succeeded");
+         if (response.responseCode) {
+           console.count("Notify succeeded");
         } else {
-//            console.count("Notify failed");
+           console.count("Notify failed");
         }
     });
 }
