@@ -29,7 +29,7 @@ Cardinal.on('payments.setupComplete', paymentsCompleted);
 Cardinal.on("payments.validated", paymentsValidated);
 
 function makeCardPayment(payload, successCallback, errorCallback) {
-    fetch(baseUrl + "/merchant/card/encryptedinitialize", {
+    fetch(baseUrl + "/merchant/card/encryptedIPGCheckout", {
         body: JSON.stringify(payload),
         credentials: 'same-origin',
         mode: 'cors',
