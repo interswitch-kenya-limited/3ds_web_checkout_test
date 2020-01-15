@@ -67,9 +67,20 @@
 
     function buildPayload() {
         return {
-            amount: $('#amount').val(),
+            amount: $('#amount').val() * 100,//To get value in minor denomination
             currency: $('#currency').val(),
-            customerInfor: "1002|kelvin|mwangi| kelvin.mwangi@interswitchgroup.com |0714171282|NBI|KE|00200|wstlnds|NBI||testmerchant.interswitch-ke.com |Firefox",
+            customer: {
+                customerId: $('#customer_id').val(),
+                firstName: $('#first_name').val(),
+                secondName: $('#second_name').val(),
+                email: $('#email').val(),
+                mobile: $('#mobile').val(),
+                city: $('#city').val(),
+                country: $('#country').val(),
+                postalCode: "",
+                street: "",
+                state: ""
+            },
             cvv2: $('#cvv').val(),
             domain: $('#domain').val(),
             expiryDate: $('#expiry_date').val(),
@@ -90,7 +101,7 @@
 
     let onSuccess = function (result) {
         console.log(result);
-        alert("Result:" + result.value);
+        alert("Result:" + result);
     };
     let onFailure = function (error) {
         console.log(error);
