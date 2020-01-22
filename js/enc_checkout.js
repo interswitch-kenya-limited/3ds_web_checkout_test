@@ -165,8 +165,8 @@ function checkEnrollAction(payload, referenceId) {
                 authorizeAction(payload, eresp);
             }
         } else {
-//            console.count(JSON.stringify(response));
-//            console.count("card not enrolled");
+            console.count("card not enrolled");
+            errorCallback(response);
             notifyAction("Check", "1", JSON.stringify(response), payload);
         }
     });
@@ -181,10 +181,12 @@ function validateAction(payload, eresp, data, jwt) {
     }, function (response) {
 //        console.count("Validation response", JSON.stringify(response));
         if (response.transactionRef) {
-//            console.count("validation succeeded");
+            console.count("validation succeeded");
+            successCallback(response);
             notifyAction("Validate", "0", JSON.stringify(response), payload);
         } else {
-//            console.count("validation failed");
+            console.count("validation failed");
+            errorCallback(response);
             notifyAction("Validate", "1", JSON.stringify(response), payload);
         }
     });
@@ -193,13 +195,13 @@ function validateAction(payload, eresp, data, jwt) {
 function authorizeAction(payload, eresp) {
     $.get(baseUrl + "/merchant/card/authorize1", {eresp: eresp, requestStr: payload}, function (response) {
         if (response.transactionRef) {
+            console.count("Authorization succeeded");
             successCallback(eresp);
             notifyAction("Authorize", "0", JSON.stringify(response), payload);
         } else {
-//            console.count(JSON.stringify(response));
-//            console.count("Authorization failed");
-            notifyAction("Authorize", "1", JSON.stringify(response), payload);
+            console.count("Authorization failed");
             errorCallback(response);
+            notifyAction("Authorize", "1", JSON.stringify(response), payload);
         }
     });
 }
@@ -211,10 +213,10 @@ function notifyAction(transactionType, respStatus, resp, payload) {
         responseStr: resp,
         requestStr: payload
     }, function (response) {
-         if (response.responseCode) {
-           console.count("Notify succeeded");
+        if (response.responseCode) {
+            console.count("Notify succeeded");
         } else {
-           console.count("Notify failed");
+            console.count("Notify failed");
         }
     });
 }
