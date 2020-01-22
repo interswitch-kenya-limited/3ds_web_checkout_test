@@ -37,34 +37,6 @@
         };
     }
 
-    function decrypt(encrypted, key, iv) {
-        console.log(encrypted, key, iv);
-        return CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Hex.parse(key), {
-            iv: CryptoJS.enc.Hex.parse(iv),
-            padding: CryptoJS.pad.Pkcs7,
-            mode: CryptoJS.mode.CBC
-        });
-    }
-
-    function doEncrypt() {
-        const payload = buildPayload();
-        const password = $('#password').val();
-        let result = encrypt(JSON.stringify(payload), password);
-        console.log(result);
-        $('#encrypted').text(result.encrypted);
-        $('#key').text(result.key);
-        $('#iv').text(result.iv);
-    }
-
-    function doDecrypt() {
-        let encrypted = $('#encrypted').text();
-        const key = $('#key').text();
-        const iv = $('#iv').text();
-        let decrypted = decrypt(encrypted, key, iv);
-        console.log(decrypted.toString(CryptoJS.enc.Utf8));
-        $('#decrypted').text("Decrypted: " + decrypted.toString(CryptoJS.enc.Utf8));
-    }
-
     function buildPayload() {
         return {
             amount: $('#amount').val() * 100,//To get value in minor denomination
@@ -95,8 +67,8 @@
     function pay() {
         const payload = buildPayload();
         const password = $('#password').val();
-        let result = encrypt(JSON.stringify(payload), password);
-        makeCardPayment(result, onSuccess, onFailure)
+        let encryptedPayloadWithKeyIvAndSignature = encrypt(JSON.stringify(payload), password);
+        makeCardPayment(encryptedPayloadWithKeyIvAndSignature, onSuccess, onFailure)
     }
 
     let onSuccess = function (result) {
@@ -117,11 +89,7 @@
     })
 </script>
 <div>
-    <button onclick="pay()">Pay</button>
-</div>
-<div style="display: flex; max-width: 100%">
     <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
-        <button onclick="doEncrypt()">Encrypt</button>
         <form>
             <div style="border: 1px solid #dddddd; margin: 5px 0; padding: 5px;">
                 <label for="first_name">Customer</label>
@@ -600,15 +568,10 @@
             <div>
                 <input type="text" id="password" placeholder="password">
             </div>
-            <button onclick="pay()">Pay</button>
         </form>
-        <p id="encrypted" style="overflow: scroll"></p>
-    </div>
-    <div style="flex-basis: 50%; flex-grow: 0; display: flex; flex-direction: column">
-        <button onclick="doDecrypt()">Decrypt</button>
-        <p id="key"></p>
-        <p id="iv"></p>
-        <p id="decrypted"></p>
+        <div>
+            <button onclick="pay()">Pay</button>
+        </div>
     </div>
 </div>
 </body>
